@@ -55,6 +55,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import axios from 'axios'
 import {onMounted, ref} from 'vue';
@@ -66,7 +67,7 @@ interface User {
   age: number;
 }
 
-const baseUrl = '' // 由面試官提供
+const baseUrl = 'https://38780.wu.elitepro.ltd' // 由面試官提供
 const users = ref<User[]>([])
 const formDate = ref({
   // id readonly
@@ -74,44 +75,119 @@ const formDate = ref({
   name: '',
   age: 0,
 })
-
 const create = () => {
-  // 需有確認步驟
-}
+  if (!formDate.value.name.trim()) {
+    alert("請填寫名字");
+    return;
+  }
+  const age = parseInt(formDate.value.age as unknown as string, 10);
+  if (!Number.isInteger(age) || age <= 0) {
+    alert("年齡必須為大於 0 的整數");
+    return;
+  }
+
+  if (!confirm(`確定要新增用戶 ${formDate.value.name} 嗎？`)) {
+    return;
+  }
+
+  axios.post(baseUrl + '/api/user', {
+    name: formDate.value.name.trim(),
+    age: age
+  }).then(res => {
+    alert("新增成功！");
+    
+    
+    users.value.push({
+      id: users.value[users.value.length - 1].id+1,  // 確保 API 回應包含 `id`
+      name: formDate.value.name.trim(),
+      age: age
+    });
+  console.log(users.value);
+    formDate.value = { id: 0, name: '', age: 0 }; // 清空表單
+  }).catch(err => {
+    console.error("新增失敗", err);
+    alert("新增失敗，請稍後再試");
+  });
+};
 
 const edit = () => {
-  // 需有確認步驟
-}
+  if (!formDate.value.id) {
+    alert("請先選擇要修改的用戶");
+    return;
+  }
+  const age = parseInt(formDate.value.age as unknown as string, 10);
+  if (!Number.isInteger(age) || age <= 0) {
+    alert("年齡必須為大於 0 的整數");
+    return;
+  }
 
+  if (!confirm(`確定要修改用戶 ${formDate.value.name} 嗎？`)) {
+    return;
+  }
+
+  axios.put(baseUrl + '/api/user', {
+    id: formDate.value.id,
+    name: formDate.value.name.trim(),
+    age: age
+  }).then(() => {
+    alert("修改成功！");
+
+
+    const index = users.value.findIndex(u => u.id === formDate.value.id);
+    if (index !== -1) {
+      users.value[index] = { ...formDate.value };
+    }
+
+    formDate.value = { id: 0, name: '', age: 0 }; // 清空表單
+  }).catch(err => {
+    console.error("修改失敗", err);
+    alert("修改失敗，請稍後再試");
+  });
+};
 
 const selectUser = (user: User) => {
-  // 禁止使用 formDate.value = user
-}
+  // 複製 user 的值，而不是直接賦值，避免影響原數據
+  formDate.value = { ...user };
+};
 
 const remove = (user: User) => {
-  // 需有確認步驟
-}
+  if (!confirm(`確定要刪除用戶 ${user.name} 嗎？`)) {
+    return;
+  }
 
-const getUsers = () => {
-  axios({
-    method: 'get',
-    url: baseUrl + '/api/user',
-  }).then(res => {
-    const {data} = res.data
-    users.value = data
+  axios.delete(baseUrl + '/api/user', {
+    data: { id: user.id }
+  }).then(() => {
+    alert("刪除成功！");
+
+    // **手動從 `users` 移除該用戶**
+    users.value = users.value.filter(u => u.id !== user.id);
+
   }).catch(err => {
-    console.log(err)
-  })
-
-}
-
-const setupPage = () => {
-  getUsers()
-}
-
-onMounted(setupPage)
-</script>
-
-<style scoped>
-
-</style>
+    console.error("刪除失敗", err);
+    alert("刪除失敗，請稍後再試");
+  });
+};
+const getUsers = () => { 
+  axios({ 
+    method: 'get', 
+    url: baseUrl + '/api/user', 
+  }).then(res => { 
+    const {data} = res.data 
+    users.value = data 
+  }).catch(err => { 
+    console.log(err) 
+  }) 
+ 
+} 
+ 
+const setupPage = () => { 
+  getUsers() 
+} 
+ 
+onMounted(setupPage) 
+</script> 
+ 
+<style scoped> 
+ 
+</style> 
