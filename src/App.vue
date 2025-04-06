@@ -105,7 +105,7 @@ const create = () => {
   console.log(users.value);
     formDate.value = { id: 0, name: '', age: 0 }; // 清空表單
   }).catch(err => {
-    console.error("新增失敗", err);
+    console.error("新增失敗!", err);
     alert("新增失敗，請稍後再試");
   });
 };
