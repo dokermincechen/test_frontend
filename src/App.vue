@@ -93,7 +93,7 @@ const create = () => {
   axios.post(baseUrl + '/api/user', {
     name: formDate.value.name.trim(),
     age: age
-  }).then(res => {
+  }).then(() => {
     alert("新增成功！");
     
     
